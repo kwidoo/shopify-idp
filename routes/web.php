@@ -1,54 +1,27 @@
 <?php
-/**
- * Laravel Routes
- *
- * This file contains the web routes for the application.
- * It defines endpoints for the OpenID Connect configuration
- * and standard web routes.
- *
- * @package Routes
- */
 
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-Route::get(
-    '/', function () {
-        return view('welcome');
-    }
-);
-Route::get(
-    '/.well-known/openid-configuration', fn () => response()->json(
-        [
-        'issuer' => config('app.url'),
-        'authorization_endpoint' => url('/oauth/authorize'),
-        'token_endpoint' => url('/oauth/token'),
-        'userinfo_endpoint' => url('/api/userinfo'),
-        'jwks_uri' => url('/.well-known/jwks.json'),
-        'response_types_supported' => ['code'],
-        'subject_types_supported' => ['public'],
-        'id_token_signing_alg_values_supported' => ['RS256'],
-        'scopes_supported' => ['openid', 'email', 'profile'],
-        ]
-    )
-);
-Route::get(
-    '/.well-known/jwks.json', function () {
-        $publicKey = file_get_contents(storage_path('oauth-public.key'));
-        $details = openssl_pkey_get_details(openssl_pkey_get_public($publicKey));
-        $modulus = rtrim(strtr(base64_encode($details['rsa']['n']), '+/', '-_'), '=');
-        $exponent = rtrim(strtr(base64_encode($details['rsa']['e']), '+/', '-_'), '=');
+Route::get('/', function () {
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
+});
 
-        return response()->json(
-            [
-            'keys' => [[
-            'kty' => 'RSA',
-            'alg' => 'RS256',
-            'use' => 'sig',
-            'n' => $modulus,
-            'e' => $exponent,
-            'kid' => '1',
-            ]]
-            ]
-        );
-    }
-);
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
