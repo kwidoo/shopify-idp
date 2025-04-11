@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminImpersonationController;
 use App\Http\Controllers\OIDCSessionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -25,6 +26,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 Route::post('/session/init', [OIDCSessionController::class, 'handleCallback'])->middleware('web');
+
+// Admin Routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/impersonate', [AdminImpersonationController::class, 'index'])->name('impersonate');
+});
 
 // API Token Management Routes
 Route::middleware('auth')->prefix('api-tokens')->name('api-tokens.')->group(function () {

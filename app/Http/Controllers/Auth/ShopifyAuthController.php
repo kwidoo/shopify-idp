@@ -49,27 +49,37 @@ class ShopifyAuthController extends Controller
      */
     public function callback(Request $request)
     {
-        // Verify state parameter to prevent CSRF attacks
-        if ($request->state !== session('oidc_state')) {
-            return redirect()->route('login')
-                ->withErrors(['message' => 'Invalid state parameter. Authentication failed.']);
-        }
-
         try {
-            // Exchange authorization code for tokens
-            $tokens = $this->oidcClientService->getTokensFromAuthorizationCode($request->code);
+            // Verify state parameter to prevent CSRF
+            if ($request->query('state') !== $request->session()->pull('oidc_state')) {
+                $request->session()->put('auth.failed', true);
+                $request->session()->put('auth.error', 'Invalid state parameter');
+                return redirect()->route('login')
+                    ->withErrors(['message' => 'Invalid state parameter. Authentication failed.']);
+            }
 
-            // Validate the ID token
+            // Exchange authorization code for tokens
+            $tokens = $this->oidcClientService->getTokensFromAuthorizationCode($request->query('code'));
+
+            // Validate ID token
             $idTokenPayload = $this->oidcClientService->validateIdToken($tokens['id_token']);
 
-            // Process user login or registration
+            // Find or provision user from claims
             $user = $this->userProvisioningService->findOrCreateUser($idTokenPayload);
 
             // Log the user in
             Auth::login($user);
 
+            // Set success flag for logging
+            $request->session()->put('auth.success', true);
+            $request->session()->put('auth.user', $user->email);
+
             return redirect()->intended('/dashboard');
         } catch (OIDCException $e) {
+            // Set failure flag for logging
+            $request->session()->put('auth.failed', true);
+            $request->session()->put('auth.error', $e->getMessage());
+
             return redirect()->route('login')
                 ->withErrors(['message' => $e->getMessage()]);
         }

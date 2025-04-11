@@ -20,6 +20,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Authentication Rate Limiting
+    |--------------------------------------------------------------------------
+    |
+    | These options configure the rate limiting for authentication attempts.
+    | This helps protect your application from brute force attacks and provides
+    | security monitoring for authentication endpoints.
+    |
+    */
+
+    'rate_limits' => [
+        'max_attempts' => env('AUTH_RATE_LIMIT_MAX_ATTEMPTS', 5),
+        'decay_minutes' => env('AUTH_RATE_LIMIT_DECAY_MINUTES', 1),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Authentication Guards
     |--------------------------------------------------------------------------
     |

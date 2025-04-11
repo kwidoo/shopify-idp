@@ -22,3 +22,5 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+bootstrap/app.php
+storage/oauth/public_key.pem

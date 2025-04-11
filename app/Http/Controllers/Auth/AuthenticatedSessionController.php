@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,11 +30,21 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        try {
+            $request->authenticate();
+            $request->session()->regenerate();
 
-        $request->session()->regenerate();
+            // Set success flag for logging
+            $request->session()->put('auth.success', true);
+            $request->session()->put('auth.user', $request->user()->email);
 
-        return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->intended(route('dashboard', absolute: false));
+        } catch (ValidationException $e) {
+            // Set failure flag for logging
+            $request->session()->put('auth.failed', true);
+            $request->session()->put('auth.error', 'Invalid credentials');
+            throw $e;
+        }
     }
 
     /**
