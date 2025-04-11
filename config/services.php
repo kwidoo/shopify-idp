@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'shopify' => [
+        'client_id' => env('SHOPIFY_CLIENT_ID'),
+        'client_secret' => env('SHOPIFY_CLIENT_SECRET'),
+        'redirect_uri' => env('SHOPIFY_REDIRECT_URI'),
+        'shop_domain' => env('SHOPIFY_SHOP_DOMAIN'),
+        'authorization_endpoint' => env('SHOPIFY_AUTH_ENDPOINT', 'https://{shop}/admin/oauth/authorize'),
+        'token_endpoint' => env('SHOPIFY_TOKEN_ENDPOINT', 'https://{shop}/admin/oauth/access_token'),
+        'userinfo_endpoint' => env('SHOPIFY_USERINFO_ENDPOINT', 'https://{shop}/admin/oauth/userinfo'),
+        'jwks_uri' => env('SHOPIFY_JWKS_URI'),
+        'scopes' => env('SHOPIFY_SCOPES', 'openid email profile'),
+        'public_key_path' => env('OIDC_JWT_PUBLIC_KEY_PATH', 'storage/oauth-public.key'),
+        'private_key_path' => env('OIDC_JWT_PRIVATE_KEY_PATH', 'storage/oauth-private.key'),
+        'webhook_secret' => env('SHOPIFY_WEBHOOK_SECRET'),
+    ],
+
 ];

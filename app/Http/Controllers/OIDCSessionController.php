@@ -2,38 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\OIDCClientServiceInterface;
+use App\Contracts\UserProvisioningServiceInterface;
+use App\Exceptions\OIDCException;
 use Illuminate\Http\Request;
-use App\Services\OIDCClientService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class OIDCSessionController extends Controller
 {
-    public function __construct(protected OIDCClientService $oidc)
+    public function __construct(
+        protected OIDCClientServiceInterface $oidcService,
+        protected UserProvisioningServiceInterface $userProvisioningService
+    ) {}
+
+    public function redirectToShopify(Request $request)
     {
+        // Generate a random state and store it in the session
+        $state = Str::random(40);
+        $request->session()->put('oidc_state', $state);
+
+        $authUrl = $this->oidcService->createAuthorizationUrl([
+            'state' => $state,
+        ]);
+
+        return redirect()->away($authUrl);
     }
 
     public function handleCallback(Request $request)
     {
-        $idToken = $request->input('id_token');
-
-        if (!$idToken) {
-            return response('Missing id_token', 400);
+        // Verify state parameter to prevent CSRF
+        if ($request->input('state') !== session('oidc_state')) {
+            return redirect()->route('login')
+                ->withErrors(['message' => 'Invalid state parameter. Authentication failed.']);
         }
 
-        $claims = $this->oidc->validateIdToken($idToken);
+        try {
+            // Exchange authorization code for tokens
+            $tokens = $this->oidcService->getTokensFromAuthorizationCode($request->input('code'));
 
-        if (!$claims) {
-            return response('Invalid ID token', 401);
+            // Validate ID token
+            $claims = $this->oidcService->validateIdToken($tokens['id_token']);
+
+            if (!$claims) {
+                return redirect()->route('login')
+                    ->withErrors(['message' => 'Invalid ID token. Authentication failed.']);
+            }
+
+            // Find or create user
+            $user = $this->userProvisioningService->findOrCreateUser($claims);
+
+            // Log the user in
+            Auth::login($user);
+
+            return redirect()->intended(route('dashboard'));
+        } catch (OIDCException $e) {
+            return redirect()->route('login')
+                ->withErrors(['message' => $e->getOIDCErrorDescription() ?? $e->getOIDCError()]);
+        } catch (\Exception $e) {
+            report($e);
+            return redirect()->route('login')
+                ->withErrors(['message' => 'Authentication failed. Please try again later.']);
         }
-
-        // Optional: Authenticate locally
-        // $user = User::where('email', $claims['email'])->first();
-        // Auth::login($user);
-
-        return response()->json(
-            [
-            'message' => 'Logged in via OIDC',
-            'claims' => $claims
-            ]
-        );
     }
 }
