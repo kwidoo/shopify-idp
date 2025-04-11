@@ -40,9 +40,10 @@ Route::middleware(['guest', 'auth.logger'])->group(function () {
         ->name('password.store');
 
     // Shopify OIDC Authentication Routes
-    Route::get('auth/shopify', [ShopifyAuthController::class, 'redirect']);
+    Route::get('auth/shopify', [ShopifyAuthController::class, 'redirect'])->name('auth.shopify');
     Route::get('auth/shopify/callback', [ShopifyAuthController::class, 'callback'])
-        ->middleware('auth.ratelimit');
+        ->middleware('auth.ratelimit')
+        ->name('auth.shopify.callback');
 });
 
 Route::middleware(['auth', 'auth.logger'])->group(function () {
