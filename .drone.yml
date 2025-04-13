@@ -51,8 +51,8 @@ volumes:
     host:
       path: /var/run/docker.sock
 
-node:
-  machine: personal-ci
+# node:
+#   machine: personal-ci
 
 ---
 kind: pipeline
