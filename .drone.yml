@@ -53,7 +53,6 @@ volumes:
 
 node:
   machine: personal-ci
-  command: nl
 
 ---
 kind: pipeline
@@ -91,21 +90,21 @@ steps:
         from_secret: SHOPIFY_WEBHOOK_SECRET_TEST
     commands:
       - echo "Starting test application step..."
-        - export APP_ENV=testing
-        - export TEST_MODE=true
-        - |
-          docker run --rm \
-          -e SHOPIFY_CLIENT_ID \
-          -e SHOPIFY_CLIENT_SECRET \
-          -e SHOPIFY_REDIRECT_URI \
-          -e SHOPIFY_SHOP_DOMAIN \
-          -e SHOPIFY_AUTH_ENDPOINT \
-          -e SHOPIFY_TOKEN_ENDPOINT \
-          -e SHOPIFY_USERINFO_ENDPOINT \
-          -e SHOPIFY_JWKS_URI \
-          -e SHOPIFY_SCOPES \
-          -e SHOPIFY_WEBHOOK_SECRET \
-          shopify-oidc:${DRONE_COMMIT_SHA} sh -c "cd /var/www && php artisan test"
+      - export APP_ENV=testing
+      - export TEST_MODE=true
+      - |
+        docker run --rm \
+        -e SHOPIFY_CLIENT_ID \
+        -e SHOPIFY_CLIENT_SECRET \
+        -e SHOPIFY_REDIRECT_URI \
+        -e SHOPIFY_SHOP_DOMAIN \
+        -e SHOPIFY_AUTH_ENDPOINT \
+        -e SHOPIFY_TOKEN_ENDPOINT \
+        -e SHOPIFY_USERINFO_ENDPOINT \
+        -e SHOPIFY_JWKS_URI \
+        -e SHOPIFY_SCOPES \
+        -e SHOPIFY_WEBHOOK_SECRET \
+        shopify-oidc:${DRONE_COMMIT_SHA} sh -c "cd /var/www && php artisan test"
 
 trigger:
   branch:
@@ -120,7 +119,6 @@ volumes:
       path: /var/run/docker.sock
 node:
   machine: personal-ci
-  command: nl
 
 ---
 kind: pipeline
@@ -165,21 +163,20 @@ steps:
       - ./deploy.sh
       - echo "Deploy application step completed."
 
-volumes:
-  - name: docker_sock
-    host:
-      path: /var/run/docker.sock
-
-node:
-  machine: personal-stage
-  command: nl
-
 trigger:
   branch:
     - sprint-*
 
   event:
     - push
+
+node:
+  machine: personal-ci
+
+volumes:
+  - name: docker_sock
+    host:
+      path: /var/run/docker.sock
 
 ---
 kind: pipeline
@@ -230,8 +227,7 @@ trigger:
     - push
 
 node:
-  machine: personal-stage
-  command: nl
+  machine: personal-ci
 
 volumes:
   - name: docker_sock
@@ -286,8 +282,7 @@ trigger:
     - production
 
 node:
-  machine: personal-prod
-  command: nl
+  machine: personal-ci
 
 volumes:
   - name: docker_sock
