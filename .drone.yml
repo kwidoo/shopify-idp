@@ -104,7 +104,7 @@ steps:
         -e SHOPIFY_JWKS_URI \
         -e SHOPIFY_SCOPES \
         -e SHOPIFY_WEBHOOK_SECRET \
-        shopify-oidc:${DRONE_COMMIT_SHA} sh -c "cd /var/www && php artisan test"
+        shopify-oidc:${DRONE_COMMIT_SHA} sh -c "cd /var/www && composer install && php artisan test"
 
 trigger:
   branch:
