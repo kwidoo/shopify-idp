@@ -36,8 +36,6 @@ steps:
       - echo "Building Docker image with APP_ENV=${APP_ENV}..."
       - chmod +x build.sh
       - ./build.sh
-clone:
-  depth: 1
 
 trigger:
   branch:
