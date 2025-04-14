@@ -31,3 +31,4 @@ docker-compose.yaml
 copilot-agent.yaml
 .github/copilot/instructions.md
 .github/tasks.json
+drone_values.sh

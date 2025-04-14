@@ -1,4 +1,10 @@
 #!/bin/bash
+# Check if Docker is installed and available
+if ! command -v docker &> /dev/null; then
+    echo "Error: Docker is not installed or not in PATH. Please install Docker and try again."
+    exit 127
+fi
+
 # Set default environment to stage
 export APP_ENV=stage
 
