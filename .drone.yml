@@ -3,12 +3,6 @@ type: docker
 name: build
 
 steps:
-  - name: verify clone
-    image: alpine/git
-    commands:
-      - git status
-      - ls -la
-      - cat .drone.yml
   - name: build application
     image: docker:19.03.12
     volumes:
