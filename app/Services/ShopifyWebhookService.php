@@ -142,11 +142,11 @@ class ShopifyWebhookService
 
         // Find all users with this shop_id in their metadata
         $users = $this->userRepository->findWhere([
-            ['shopify_metadata->shop_id', '=', $shopId]
+            ['shopify_metadata->shop_id', '=', (string)$shopId]
         ]);
 
         foreach ($users as $user) {
-            $metadata = $user->shopify_metadata;
+            $metadata = $user->shopify_metadata ?? [];
             $metadata['shop_deactivated'] = true;
             $metadata['shop_deactivated_at'] = now()->toIso8601String();
             $user->shopify_metadata = $metadata;
@@ -177,13 +177,14 @@ class ShopifyWebhookService
 
         // Find all users with this shop_id in their metadata
         $users = $this->userRepository->findWhere([
-            ['shopify_metadata->shop_id', '=', $shopId]
+            ['shopify_metadata->shop_id', '=', (string)$shopId]  // Ensure shopId is cast to string
         ]);
 
         // Update shop information for all related users
         foreach ($users as $user) {
             $metadata = $user->shopify_metadata;
-            $metadata['shop_name'] = $data['name'] ?? $metadata['shop_name'] ?? null;
+            // Use shop_name if provided, otherwise fall back to name
+            $metadata['shop_name'] = $data['shop_name'] ?? $data['name'] ?? $metadata['shop_name'] ?? null;
             $metadata['shop_domain'] = $shopDomain;
             $metadata['shop_updated_at'] = now()->toIso8601String();
             $user->shopify_metadata = $metadata;

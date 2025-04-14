@@ -40,38 +40,63 @@ RUN rm -rf /etc/nginx/sites-enabled/default
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Add Composer's global bin directory to the system PATH
-ENV PATH /root/.composer/vendor/bin:$PATH
+ENV PATH=/root/.composer/vendor/bin:$PATH
 
-# Copy application files
+
+# PHP Application build stage - Now before Node.js
+FROM prebuild AS builder
+
+# Copy application files to PHP stage
 COPY . /var/www
 
-# Define ARGs for Shopify environment variables
+# Define ARGs for environment variables
 ARG APP_ENV=stage
 
 # Copy environment file based on build arg
-COPY .env.${APP_ENV} .env
+COPY .env.$APP_ENV .env
 
-# Install dev dependencies for testing, regular dependencies otherwise
-FROM prebuild AS builder
-ARG APP_ENV=stage
+RUN composer install --no-dev --optimize-autoloader
 
-RUN if [ "$APP_ENV" = "testing" ]; then \
-    composer install; \
-    else \
-    composer install --no-dev --optimize-autoloader; \
-    fi
+# Node.js build stage for frontend assets - MOVED AFTER composer install
+FROM node:23.11.0 AS node-builder
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy the application code including composer dependencies
+COPY --from=builder /var/www /var/www
+
+# Install npm dependencies
+RUN npm ci
+
+# Build the assets (which now has access to Ziggy)
+RUN npm run build
+
+# Create a final combined stage
+FROM builder AS combined
+
+# Copy built assets from node stage
+COPY --from=node-builder /var/www/public/build /var/www/public/build
+COPY --from=node-builder /var/www/bootstrap/ssr /var/www/bootstrap/ssr
+COPY --from=node-builder /var/www/node_modules /var/www/node_modules
 
 # Create a separate stage for testing
-FROM builder AS testing
+FROM combined AS testing
 RUN php artisan config:clear && \
     chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Final stage for production/staging
-FROM builder AS web
+FROM combined AS web
 
 # Ensure permissions for the Laravel storage and cache directories
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
+RUN apt-get update && apt-get install -y curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN npm prune --omit=dev
 
 # Generate application key
 RUN php artisan key:generate
@@ -86,6 +111,13 @@ RUN { \
     echo ""; \
     echo "[program:nginx]"; \
     echo "command=nginx -g 'daemon off;'"; \
+    echo "[program:ssr]"; \
+    echo "command=node bootstrap/ssr/ssr.mjs"; \
+    echo "directory=/var/www"; \
+    echo "autostart=true"; \
+    echo "autorestart=true"; \
+    echo "stdout_logfile=/dev/stdout"; \
+    echo "stderr_logfile=/dev/stderr"; \
     } > /etc/supervisor/conf.d/supervisord.conf
 
 # Configure logrotate for Laravel and Nginx logs

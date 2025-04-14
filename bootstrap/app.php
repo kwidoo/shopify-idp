@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('auth-routes', [
             AuthLogger::class
         ]);
+        $middleware->trustProxies('*');
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {

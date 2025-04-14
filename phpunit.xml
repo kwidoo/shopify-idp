@@ -29,5 +29,11 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Shopify Test Variables -->
+        <env name="SHOPIFY_API_KEY" value="test_api_key"/>
+        <env name="SHOPIFY_API_SECRET" value="test_api_secret"/>
+        <env name="SHOPIFY_SCOPES" value="read_customers,write_customers,read_orders"/>
+        <env name="SHOPIFY_HOST" value="https://test-shop.myshopify.com"/>
+        <env name="SHOPIFY_WEBHOOK_SECRET" value="test_webhook_secret"/>
     </php>
 </phpunit>
