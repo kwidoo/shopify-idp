@@ -26,3 +26,8 @@ bootstrap/app.php
 storage/oauth/**
 .env.local
 docker-compose.yaml
+.github/config.json
+.github/copilot-instructions.md
+copilot-agent.yaml
+.github/copilot/instructions.md
+.github/tasks.json

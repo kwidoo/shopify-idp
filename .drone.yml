@@ -170,8 +170,8 @@ trigger:
   event:
     - push
 
-node:
-  machine: personal-ci
+# node:
+#   machine: personal-ci
 
 volumes:
   - name: docker_sock
@@ -226,8 +226,8 @@ trigger:
   event:
     - push
 
-node:
-  machine: personal-ci
+# node:
+#   machine: personal-ci
 
 volumes:
   - name: docker_sock
