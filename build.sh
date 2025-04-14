@@ -13,7 +13,16 @@ else
     echo "Building for stage environment"
 fi
 
+# Set a default tag if DRONE_COMMIT_SHA is not available
+if [ -z "${DRONE_COMMIT_SHA}" ]; then
+    TAG_VALUE="local-$(date +%Y%m%d-%H%M%S)"
+    echo "DRONE_COMMIT_SHA not set, using tag: ${TAG_VALUE}"
+else
+    TAG_VALUE=${DRONE_COMMIT_SHA}
+    echo "Using DRONE_COMMIT_SHA for tag: ${TAG_VALUE}"
+fi
+
 echo "Building with APP_ENV=${APP_ENV}"
 docker build \
     --build-arg APP_ENV=${APP_ENV} \
-    -t shopify-oidc:${DRONE_COMMIT_SHA} -f Dockerfile .
+    -t shopify-oidc:${TAG_VALUE} -f Dockerfile .
