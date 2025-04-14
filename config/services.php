@@ -48,6 +48,10 @@ return [
         'public_key_path' => env('OIDC_JWT_PUBLIC_KEY_PATH', 'storage/oauth-public.key'),
         'private_key_path' => env('OIDC_JWT_PRIVATE_KEY_PATH', 'storage/oauth-private.key'),
         'webhook_secret' => env('SHOPIFY_WEBHOOK_SECRET'),
+        'api_version' => env('SHOPIFY_API_VERSION', '2023-10'),
+        'default_access_token' => env('SHOPIFY_DEFAULT_ACCESS_TOKEN'),
+        'api_rate_limit_calls' => env('SHOPIFY_API_RATE_LIMIT_CALLS', 2),
+        'api_rate_limit_seconds' => env('SHOPIFY_API_RATE_LIMIT_SECONDS', 1),
     ],
 
 ];

@@ -3,8 +3,12 @@
 namespace App\Providers;
 
 use App\Contracts\ImpersonationLogRepository;
+use App\Contracts\ShopifyApiClient;
+use App\Contracts\ShopifyResponseService;
 use App\Contracts\TokenServiceInterface;
 use App\Repositories\ImpersonationLogRepositoryEloquent;
+use App\Services\DefaultShopifyApiClient;
+use App\Services\DefaultShopifyResponseService;
 use App\Services\TokenService;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\UserRepository::class, \App\Repositories\UserRepositoryEloquent::class);
         $this->app->bind(\App\Contracts\OIDCClientServiceInterface::class, \App\Services\OIDCClientService::class);
         $this->app->bind(\App\Contracts\UserProvisioningServiceInterface::class, \App\Services\ShopifyUserProvisioningService::class);
+        $this->app->bind(ShopifyResponseService::class, DefaultShopifyResponseService::class);
+        $this->app->bind(ShopifyApiClient::class, DefaultShopifyApiClient::class);
         $this->app->singleton(\App\Services\ShopifyWebhookService::class);
     }
 
